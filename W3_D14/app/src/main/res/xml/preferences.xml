@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:key="@string/preference_color"
+        android:title="Color"
+        android:summary="Choose fab color"
+        android:entries="@array/entries"
+        android:entryValues="@array/entryValues"/>
+</PreferenceScreen>

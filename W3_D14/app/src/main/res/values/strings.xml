@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" tools:ignore="InvalidStringTermId">W3_D1</string>
+    <string-array name="entries">
+        <item>Aqua</item>
+        <item>Beige</item>
+        <item>Ivory</item>
+    </string-array>
+    <string-array name="entryValues">
+        <item>#00FFFF</item>
+        <item>#F5F5DC</item>
+        <item>#FFFFF0</item>
+    </string-array>
+    <string name="preference_color">preference_color</string>
+</resources>
