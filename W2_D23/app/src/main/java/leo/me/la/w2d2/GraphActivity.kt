@@ -34,45 +34,31 @@ class GraphActivity : AppCompatActivity() {
 
         intent.extras?.getParcelable<BluetoothDevice>("bd")
             ?.apply {
-                connectGatt(this@GraphActivity, false, object : BluetoothGattCallback() {
-                    override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-                        super.onConnectionStateChange(gatt, status, newState)
-                        if (newState == BluetoothProfile.STATE_CONNECTED)
-                            gatt.discoverServices();
-                    }
-
-                    @SuppressLint("SetTextI18n")
-                    override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-                        super.onCharacteristicChanged(gatt, characteristic)
-                        runOnUiThread {
-                            val format = if (characteristic.properties and 0x01 != 0) {
-                                BluetoothGattCharacteristic.FORMAT_UINT16
-                            } else {
-                                BluetoothGattCharacteristic.FORMAT_UINT8
+                BleWrapper(this@GraphActivity, this.address)
+                    .apply {
+                        connect(false)
+                        addListener(object : BleWrapper.BleCallback {
+                            override fun onDeviceReady(gatt: BluetoothGatt) {
+                                getNotifications(gatt, HEART_RATE_SERVICE_UUID, HEART_RATE_MEASUREMENT_CHAR_UUID)
                             }
-                            val heartRate = characteristic.getIntValue(format, 1)
-                            heartrate.text = "$heartRate bpm"
-                            series.appendData(DataPoint(Date(), heartRate.toDouble()), false, 500)
-                        }
-                    }
 
-                    override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-                        super.onServicesDiscovered(gatt, status)
-                        gatt.getService(HEART_RATE_SERVICE_UUID)
-                            ?.getCharacteristic(HEART_RATE_MEASUREMENT_CHAR_UUID)
-                            ?.let { characteristics ->
-                                gatt.apply {
-                                    writeDescriptor(
-                                        characteristics.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG_UUID)
-                                            .also { bdg ->
-                                                bdg.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                                            }
-                                    )
-                                    setCharacteristicNotification(characteristics, true)
+                            override fun onDeviceDisconnected() {}
+
+                            @SuppressLint("SetTextI18n")
+                            override fun onNotify(characteristic: BluetoothGattCharacteristic) {
+                                runOnUiThread {
+                                    val format = if (characteristic.properties and 0x01 != 0) {
+                                        BluetoothGattCharacteristic.FORMAT_UINT16
+                                    } else {
+                                        BluetoothGattCharacteristic.FORMAT_UINT8
+                                    }
+                                    val heartRate = characteristic.getIntValue(format, 1)
+                                    heartrate.text = "$heartRate bpm"
+                                    series.appendData(DataPoint(Date(), heartRate.toDouble()), false, 500)
                                 }
                             }
+                        })
                     }
-                })
             }
     }
 }
