@@ -7,12 +7,6 @@ import android.os.Bundle
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT16
-import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
@@ -21,68 +15,26 @@ import android.bluetooth.le.ScanSettings.CALLBACK_TYPE_ALL_MATCHES
 import android.content.pm.PackageManager
 import android.os.ParcelUuid
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.ActivityCompat.startActivityForResult
-import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.buttonStart
 import kotlinx.android.synthetic.main.activity_main.buttonStop
-import kotlinx.android.synthetic.main.activity_main.heartrate
 import kotlinx.android.synthetic.main.activity_main.rcv
-import leo.me.la.w2d2.R.id.buttonStart
-import leo.me.la.w2d2.R.id.buttonStop
-import leo.me.la.w2d2.R.id.heartrate
-import leo.me.la.w2d2.R.id.rcv
 import java.util.UUID
 
-private val HEART_RATE_SERVICE_UUID = 0x180D.toUUID()
-private val HEART_RATE_MEASUREMENT_CHAR_UUID = 0x2A37.toUUID()
-private val CLIENT_CHARACTERISTIC_CONFIG_UUID = 0x2902.toUUID()
-
+val HEART_RATE_SERVICE_UUID = 0x180D.toUUID()
 class MainActivity : AppCompatActivity() {
 
     private val foundDevices = mutableMapOf<String, Triple<BluetoothDevice, Int, Boolean>>()
     private val adapter: DeviceAdapter = DeviceAdapter(foundDevices) {
-        it.connectGatt(this, false, object : BluetoothGattCallback() {
-
-            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-                super.onConnectionStateChange(gatt, status, newState)
-                if (newState == BluetoothProfile.STATE_CONNECTED)
-                    gatt.discoverServices();
-            }
-
-            override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-                super.onCharacteristicChanged(gatt, characteristic)
-                runOnUiThread {
-                    val format = if (characteristic.properties and 0x01 != 0) {
-                        BluetoothGattCharacteristic.FORMAT_UINT16
-                    } else {
-                        BluetoothGattCharacteristic.FORMAT_UINT8
-                    }
-                    val heartRate = characteristic.getIntValue(format, 1)
-                    heartrate.text = "$heartRate bpm"
+        mBluetoothAdapter?.bluetoothLeScanner?.stopScan(bluetoothCallback)
+        startActivity(
+            Intent(this, GraphActivity::class.java)
+                .also { i ->
+                    i.putExtra("bd", it)
                 }
-            }
-
-            override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-                super.onServicesDiscovered(gatt, status)
-                gatt.getService(HEART_RATE_SERVICE_UUID)
-                    ?.getCharacteristic(HEART_RATE_MEASUREMENT_CHAR_UUID)
-                    ?.let { characteristics ->
-                        gatt.apply {
-                            writeDescriptor(
-                                characteristics.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG_UUID)
-                                    .also { bdg ->
-                                        bdg.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                                    }
-                            )
-                            setCharacteristicNotification(characteristics, true)
-                        }
-                    }
-            }
-        })
+        )
     }
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private val bluetoothCallback = object : ScanCallback() {
@@ -230,7 +182,7 @@ class MainActivity : AppCompatActivity() {
 
 }
 
-private fun Int.toUUID(): UUID {
+fun Int.toUUID(): UUID {
     val MSB = 0x0000000000001000L
     val LSB = -0x7fffff7fa064cb05L
     val value = (this and -0x1).toLong()

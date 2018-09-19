@@ -7,19 +7,6 @@
     android:layout_height="match_parent"
     >
 
-    <TextView
-        android:id="@+id/heartrate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="8dp"
-        android:textColor="@color/colorPrimaryDark"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
-
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rcv"
         android:layout_width="match_parent"
@@ -27,7 +14,7 @@
         app:layout_constraintBottom_toTopOf="@+id/buttonStart"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/heartrate"
+        app:layout_constraintTop_toTopOf="parent"
         tools:listitem="@layout/i_device"
         />
 
